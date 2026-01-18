@@ -1,0 +1,50 @@
+package com.example.giscord.dto;
+
+import java.time.Instant;
+
+public class MemberDto {
+    private Long userId;
+    private String userName;
+    private String role;
+    private Instant joinedAt;
+
+    public MemberDto() {}
+    public MemberDto(Long userId, String userName, String role, Instant joinedAt) {
+        this.userId = userId; this.userName = userName; this.role = role; this.joinedAt = joinedAt;
+    }
+    // getters/setters...
+
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public Instant getJoinedAt() {
+        return joinedAt;
+    }
+
+    public void setJoinedAt(Instant joinedAt) {
+        this.joinedAt = joinedAt;
+    }
+}
+
