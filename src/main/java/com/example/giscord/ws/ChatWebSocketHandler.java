@@ -74,6 +74,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    @Override
+    public void afterConnectionClosed(
+        WebSocketSession session,
+        CloseStatus status
+    ) {
+        channelSessions.values().forEach(set -> set.remove(session));
+        System.out.println("WS disconnected: " + session.getId());
+    }
+
     private void handleJoin(WebSocketSession session, Long userId, WsMessage msg) {
         Long channelId = msg.getChannelId();
         if (channelId == null) {
@@ -81,7 +90,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        // (membership enforcement comes next)
+
+        boolean isMember = channelMembershipRepository.existsByChannelAndUser(channelId, userId);
+
+        if (!isMember) {
+            sendError(session, "Not a member of channel" + channelId);
+            return;
+        }
+
         channelSessions
                 .computeIfAbsent(channelId, k -> ConcurrentHashMap.newKeySet())
                 .add(session);
@@ -95,6 +111,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         Long channelId = msg.getChannelId();
         if (channelId == null) {
             sendError(session, "channelId required");
+            return;
+        }
+
+
+        if (!isJoined(channelId, session)) {
+            sendError(session, "Join channel before sending messages");
             return;
         }
 
@@ -116,6 +138,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 s.sendMessage(new TextMessage(outgoing));
             }
         }
+    }
+
+    private boolean isJoined(Long channelId, WebSocketSession session) {
+        return channelSessions
+                    .getOrDefault(channelId, Set.of())
+                    .contains(session);
     }
 
     private String extractToken(URI uri) {

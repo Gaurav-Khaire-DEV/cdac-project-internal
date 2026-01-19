@@ -1,52 +1,15 @@
-/*
 package com.example.giscord.controller;
 
-
-import com.example.giscord.entity.User;
-import com.example.giscord.service.UserService;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 import java.util.Map;
 
-@RestController
-@RequestMapping("/api/users")
-public class UserController {
-    private final UserService userService;
-
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
-    @PostMapping("/register")
-    public User register(@RequestBody Map<String, String> body) {
-        String username = body.get("username");
-        String password = body.get("password");
-        return userService.registerUser(username, password);
-    }
-
-    @PostMapping("/login")
-    public String login(@RequestBody Map<String, String> body) {
-        String username = body.get("username");
-        String password = body.get("password");
-        boolean valid = userService.verifyPassword(username, password);
-        return valid ? "✅ Login successful" : "❌ Invalid credentials";
-    }
-
-    @GetMapping
-    public List<User> getAllUsers() {
-        return userService.getAllUsers();
-    }
-}
-
-
-
-
- */
-
-
-
-package com.example.giscord.controller;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.giscord.dto.UserLoginRequest;
 import com.example.giscord.dto.UserRegisterRequest;
@@ -54,16 +17,13 @@ import com.example.giscord.dto.UserResponseDto;
 import com.example.giscord.entity.User;
 import com.example.giscord.security.JwtUtil;
 import com.example.giscord.service.UserService;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
     private final UserService userService;
+
+    // TODO: read from application.yaml
     private final JwtUtil jwtUtil = new JwtUtil("change-me-super-secret-and-long-enough", 300000);
 
     public UserController(UserService userService) { this.userService = userService; }
