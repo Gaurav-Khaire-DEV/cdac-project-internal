@@ -1,0 +1,4 @@
+- [ ] add field for message
+	- modify field in message_entity
+	- modify field in websocket_message_format
+	- integrate with wscontroller { whatever it is }
