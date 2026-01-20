@@ -21,12 +21,14 @@ import com.example.giscord.service.UserService;
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
+
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
-    // TODO: read from application.yaml
-    private final JwtUtil jwtUtil = new JwtUtil("change-me-super-secret-and-long-enough", 300000);
-
-    public UserController(UserService userService) { this.userService = userService; }
+    public UserController(UserService userService, JwtUtil jwtUtil) { 
+        this.userService = userService; 
+        this.jwtUtil = jwtUtil;
+    }
 
     @PostMapping(path = "/register", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> register(@RequestBody UserRegisterRequest req) {
