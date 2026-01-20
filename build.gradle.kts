@@ -30,6 +30,15 @@ dependencies {
 	implementation("org.flywaydb:flyway-mysql")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
 
+	implementation("org.projectlombok:lombok:1.18.42")
+
+	implementation(platform("software.amazon.awssdk:bom:2.41.10"))
+	implementation("software.amazon.awssdk:auth")
+	implementation("software.amazon.awssdk:s3")
+
+	// implementation("software.amazon.awssdk:auth:2.41.10")
+	// implementation("software.amazon.awssdk:s3:2.41.10")
+
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
