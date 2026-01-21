@@ -30,7 +30,11 @@ dependencies {
 	implementation("org.flywaydb:flyway-mysql")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
 
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
+
 	implementation("org.projectlombok:lombok:1.18.42")
+	annotationProcessor("org.projectlombok:lombok:1.18.42")
+
 
 	implementation(platform("software.amazon.awssdk:bom:2.41.10"))
 	implementation("software.amazon.awssdk:auth")
@@ -46,11 +50,12 @@ dependencies {
 
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.11.5")
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.11.5") // for jackson serializers
+
     runtimeOnly("com.mysql:mysql-connector-j")
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
-	testImplementation("org.springframework.boot:spring-boot-starter-data-redis-test")
+	// testImplementation("org.springframework.boot:spring-boot-starter-data-redis-test")
 
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }

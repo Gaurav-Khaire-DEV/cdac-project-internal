@@ -4,9 +4,11 @@ import com.example.giscord.entity.ChannelMessage;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface ChannelMessageRepository extends JpaRepository<ChannelMessage, Long> {
 
     @Query("select m from ChannelMessage m where m.channel.channelId = :channelId order by m.createdAt desc")

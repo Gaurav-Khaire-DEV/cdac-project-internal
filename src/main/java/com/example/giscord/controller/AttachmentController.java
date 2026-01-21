@@ -4,17 +4,27 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.example.giscord.entity.Attachment;
 import com.example.giscord.repository.AttachmentRepository;
 
+import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @RestController
@@ -24,15 +34,15 @@ public class AttachmentController {
     private final AttachmentRepository attachmentRepository;
     private final S3Client s3Client;
 
-    private final String bucket;
+    @Value("${minio.bucket}")
+    private String bucket;
 
-    public AttachmentController(AttachmentRepository attachmentRepository, S3Client s3Client, @Value("${minio.bucket}") String bucket) {
+    public AttachmentController(AttachmentRepository attachmentRepository, S3Client s3Client) {
         this.attachmentRepository = attachmentRepository;
         this.s3Client = s3Client;
-        this.bucket = bucket; // is this right way to do this ?? what are other ways ??
     }
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadAttachment(@RequestParam("file") MultipartFile file) throws Exception {
 
         String key = UUID.randomUUID() + "-" + file.getOriginalFilename();
@@ -53,6 +63,7 @@ public class AttachmentController {
         a.setSize(file.getSize());
 
 
+        // TODO: Do we need an AttachmentService ??
         attachmentRepository.save(a);
         
         return ResponseEntity
@@ -60,5 +71,30 @@ public class AttachmentController {
             .body(Map.of("attachmendId", a.getId()));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> downloadAttachment(@PathVariable Long id) {
+        Attachment attachment = attachmentRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found"));
+        
+        ResponseBytes<GetObjectResponse> s3Object = s3Client.getObjectAsBytes(
+            GetObjectRequest.builder() 
+                .bucket(attachment.getBucket())
+                .key(attachment.getObjectKey())
+                .build());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(attachment.getContentType()));
+        headers.setContentLength(s3Object.asByteArray().length);
+        headers.setContentDisposition(
+            ContentDisposition.inline()
+                .filename(attachment.getObjectKey())
+                .build()
+        );
+
+        return ResponseEntity
+            .status(200)
+            .headers(headers)
+            .body(s3Object.asByteArray());
+    }
     
 }

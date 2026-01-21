@@ -10,6 +10,7 @@ import java.util.List;
 
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
+
     private final UserRepository userRepo;
 
     public CustomUserDetailsService(UserRepository userRepo) {
@@ -24,5 +25,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new CustomUserDetails(u.getUserId(), u.getUserName(), u.getPasswordHash(),
                 List.of(new SimpleGrantedAuthority("ROLE_USER")));
     }
+
 }
 

@@ -25,16 +25,23 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private final JwtUtil jwtUtil;
     private final ChannelMembershipRepository channelMembershipRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final RedisTemplate<String, Object> redisTemplate;
+    // Changed from new to this ?? will it ask for a Bean ?? 
+    private final ObjectMapper objectMapper;
+    // private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, RedisMessage> redisMessageTemplate;
+    private final RedisTemplate<String, String> redisStringTemplate;
 
     // channelId -> sessions
     private final Map<Long, Set<WebSocketSession>> channelSessions = new ConcurrentHashMap<>();
 
-    public ChatWebSocketHandler(JwtUtil jwtUtil, ChannelMembershipRepository channelMembershipRepository, RedisTemplate redisTemplate) {
+    public ChatWebSocketHandler(JwtUtil jwtUtil, ChannelMembershipRepository channelMembershipRepository, 
+        RedisTemplate<String, RedisMessage> redisMessageTemplate, RedisTemplate<String, String> redisStringTemplate,
+        ObjectMapper objectMapper) {
         this.jwtUtil = jwtUtil;
         this.channelMembershipRepository = channelMembershipRepository;
-        this.redisTemplate = redisTemplate;
+        this.redisMessageTemplate = redisMessageTemplate;
+        this.redisStringTemplate = redisStringTemplate;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -133,9 +140,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
-        // TODO: persist message with userId
-
-
         RedisMessage rm = new RedisMessage(
             channelId,
             userId,
@@ -144,9 +148,13 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             Instant.now()
         );
 
-        redisTemplate
+        redisMessageTemplate
             .opsForList()
             .rightPush("channel:" + channelId, rm);
+
+        redisStringTemplate
+            .opsForSet()
+            .add("active:channels", String.valueOf(channelId));
 
 
         String outgoing = objectMapper.writeValueAsString(msg);
