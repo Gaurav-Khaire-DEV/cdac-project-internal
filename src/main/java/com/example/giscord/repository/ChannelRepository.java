@@ -11,6 +11,8 @@ import com.example.giscord.entity.Channel;
 public interface ChannelRepository extends JpaRepository<Channel, Long> {
 
     // Why are there left joins here ??
+    // What exactly do they mean ??
+    // Are they optimized ?? Overengineered ??
     @Query("select c from Channel c " +
             "left join fetch c.members cm " +
             "left join fetch cm.user u " +

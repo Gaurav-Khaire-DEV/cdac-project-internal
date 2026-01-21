@@ -1,16 +1,19 @@
 package com.example.giscord.ws;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.example.giscord.redis.RedisMessage;
 import com.example.giscord.repository.ChannelMembershipRepository;
 import com.example.giscord.security.JwtUtil;
 import com.example.giscord.ws.dto.ChannelMessagePayload;
@@ -23,13 +26,15 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final JwtUtil jwtUtil;
     private final ChannelMembershipRepository channelMembershipRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RedisTemplate<String, Object> redisTemplate;
 
     // channelId -> sessions
     private final Map<Long, Set<WebSocketSession>> channelSessions = new ConcurrentHashMap<>();
 
-    public ChatWebSocketHandler(JwtUtil jwtUtil, ChannelMembershipRepository channelMembershipRepository) {
+    public ChatWebSocketHandler(JwtUtil jwtUtil, ChannelMembershipRepository channelMembershipRepository, RedisTemplate redisTemplate) {
         this.jwtUtil = jwtUtil;
         this.channelMembershipRepository = channelMembershipRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     @Override
@@ -123,12 +128,26 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         ChannelMessagePayload payload =
                 objectMapper.convertValue(msg.getPayload(), ChannelMessagePayload.class);
 
-        if (payload.getContent() == null || payload.getContent().isBlank()) {
+        if (payload.content() == null || payload.content().isBlank()) {
             sendError(session, "content required");
             return;
         }
 
         // TODO: persist message with userId
+
+
+        RedisMessage rm = new RedisMessage(
+            channelId,
+            userId,
+            payload.content(),
+            payload.attachmentIds(),
+            Instant.now()
+        );
+
+        redisTemplate
+            .opsForList()
+            .rightPush("channel:" + channelId, rm);
+
 
         String outgoing = objectMapper.writeValueAsString(msg);
 

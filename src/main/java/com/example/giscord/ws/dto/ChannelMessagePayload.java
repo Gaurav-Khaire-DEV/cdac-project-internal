@@ -1,18 +1,6 @@
 
 package com.example.giscord.ws.dto;
 
-public class ChannelMessagePayload {
+import java.util.List;
 
-    private String content;
-
-    public ChannelMessagePayload() {}
-
-    public String getContent() {
-        return content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-}
-
+public record ChannelMessagePayload(String content, List<Long> attachmentIds) {}

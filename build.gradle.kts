@@ -36,6 +36,9 @@ dependencies {
 	implementation("software.amazon.awssdk:auth")
 	implementation("software.amazon.awssdk:s3")
 
+
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+
 	// implementation("software.amazon.awssdk:auth:2.41.10")
 	// implementation("software.amazon.awssdk:s3:2.41.10")
 
@@ -47,6 +50,8 @@ dependencies {
 
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-data-redis-test")
+
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
