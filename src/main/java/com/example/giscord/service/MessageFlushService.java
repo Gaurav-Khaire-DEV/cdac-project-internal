@@ -7,8 +7,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import com.example.giscord.entity.Attachment;
 import com.example.giscord.entity.Message;
 import com.example.giscord.redis.RedisMessage;
+import com.example.giscord.repository.AttachmentRepository;
 import com.example.giscord.repository.MessageRepository;
 
 @Service
@@ -17,15 +19,18 @@ public class MessageFlushService {
     private final RedisTemplate<String, RedisMessage> redisMessageTemplate;
     private final RedisTemplate<String, String> redisStringTemplate;
     private final MessageRepository messageRepository;
+    private final AttachmentRepository attachmentRepository;
 
     public MessageFlushService(
             RedisTemplate<String, RedisMessage> redisMessageTemplate,
             RedisTemplate<String, String> redisStringTemplate,
-            MessageRepository messageRepository
+            MessageRepository messageRepository,
+            AttachmentRepository attachmentRepository
     ) {
         this.redisMessageTemplate = redisMessageTemplate;
         this.redisStringTemplate = redisStringTemplate;
         this.messageRepository = messageRepository;
+        this.attachmentRepository = attachmentRepository;
     }
 
 
@@ -58,45 +63,18 @@ public class MessageFlushService {
                 m.setSenderUserId(rm.userId());
                 m.setContent(rm.content());
                 m.setCreatedAt(rm.createdAt());
+                
+                if (rm.attachmentIds() != null && !rm.attachmentIds().isEmpty()) {
+                    List<Attachment> attachments = attachmentRepository.findAllById(rm.attachmentIds());
+                    m.getAttachments().addAll(attachments);
 
+                    for (Attachment attachment: attachments) {
+                        m.addAttachment(attachment);
+                    }
 
+                }
                 messageRepository.save(m);
-
             }
-            
-
         }
     }
-
-    /*
-    @Scheduled(fixedDelay = 5000)
-    public void flush() {
-
-        // System.out.println("Flushing messages from Redis to DB at " + Instant.now().toString());
-
-        // example: iterate known channels (store channel IDs elsewhere)
-        // simplified example assumes channel:3
-        // TODO: improve with SCAN or other method to avoid unsafe casts
-        // @SuppressWarnings("unchecked")
-        // List<RedisMessage> batch =
-        //         (List<RedisMessage>) (List<?>)
-        //         redisTemplate.opsForList().range("channel:2", 0, -1);
-        
-        List<RedisMessage> batch = redisTemplate.opsForSet().add("active:channels", String.valueOf(channelId))
-
-        if (batch == null || batch.isEmpty()) return;
-
-        redisTemplate.delete("channel:2");
-
-        for (RedisMessage rm : batch) {
-            Message m = new Message();
-            m.setChannelId(rm.channelId());
-            m.setSenderUserId(rm.userId());
-            m.setContent(rm.content());
-            m.setCreatedAt(rm.createdAt());
-
-            messageRepository.save(m);
-        }
-    }
-    */
 }

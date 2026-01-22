@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.example.giscord.repository.AttachmentRepository;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -27,18 +28,23 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
     private final ChannelMembershipRepository channelMembershipRepository;
     // Changed from new to this ?? will it ask for a Bean ?? 
     private final ObjectMapper objectMapper;
-    // private final RedisTemplate<String, Object> redisTemplate;
+    private final AttachmentRepository attachmentRepository;
     private final RedisTemplate<String, RedisMessage> redisMessageTemplate;
     private final RedisTemplate<String, String> redisStringTemplate;
 
     // channelId -> sessions
     private final Map<Long, Set<WebSocketSession>> channelSessions = new ConcurrentHashMap<>();
 
-    public ChatWebSocketHandler(JwtUtil jwtUtil, ChannelMembershipRepository channelMembershipRepository, 
-        RedisTemplate<String, RedisMessage> redisMessageTemplate, RedisTemplate<String, String> redisStringTemplate,
-        ObjectMapper objectMapper) {
+    public ChatWebSocketHandler(
+            JwtUtil jwtUtil,
+            ChannelMembershipRepository channelMembershipRepository,
+            AttachmentRepository attachmentRepository,
+            RedisTemplate<String, RedisMessage> redisMessageTemplate,
+            RedisTemplate<String, String> redisStringTemplate,
+            ObjectMapper objectMapper) {
         this.jwtUtil = jwtUtil;
         this.channelMembershipRepository = channelMembershipRepository;
+        this.attachmentRepository = attachmentRepository;
         this.redisMessageTemplate = redisMessageTemplate;
         this.redisStringTemplate = redisStringTemplate;
         this.objectMapper = objectMapper;
@@ -79,6 +85,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         WsMessage wsMessage =
                 objectMapper.readValue(message.getPayload(), WsMessage.class);
 
+        // TODO: LEAVE_CHANNEL
         switch (wsMessage.getType()) {
             case "JOIN_CHANNEL" -> handleJoin(session, userId, wsMessage);
             case "CHANNEL_MESSAGE" -> handleChannelMessage(session, userId, wsMessage);
@@ -140,6 +147,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
+        if (payload.attachmentIds() != null && !payload.attachmentIds().isEmpty()) {
+            long count = attachmentRepository.countByIdIn(payload.attachmentIds());
+            if (count != payload.attachmentIds().size()) {
+                sendError(session, "Invalid Attachment Reference");
+                return;
+            }
+        }
+
         RedisMessage rm = new RedisMessage(
             channelId,
             userId,
@@ -150,7 +165,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         redisMessageTemplate
             .opsForList()
-            .rightPush("channel:" + channelId, rm);
+            .rightPush("channel:" + channelId + ":pending", rm);
 
         redisStringTemplate
             .opsForSet()

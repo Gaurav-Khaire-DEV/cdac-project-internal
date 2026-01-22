@@ -5,7 +5,9 @@ import org.springframework.stereotype.Repository;
 
 import com.example.giscord.entity.Attachment;
 
+import java.util.Collection;
+
 @Repository
 public interface AttachmentRepository extends JpaRepository<Attachment, Long> {
-    
+    long countByIdIn(Collection<Long> ids);
 }

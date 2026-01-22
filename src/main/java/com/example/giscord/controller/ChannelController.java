@@ -3,6 +3,7 @@ package com.example.giscord.controller;
 import java.util.List;
 import java.util.Map;
 
+import com.example.giscord.repository.MessageRepository;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,8 +27,12 @@ import com.example.giscord.service.ChannelService;
 public class ChannelController {
 
     private final ChannelService channelService;
+    private final MessageRepository messageRepository;
 
-    public ChannelController(ChannelService channelService) { this.channelService = channelService; }
+    public ChannelController(ChannelService channelService, MessageRepository messageRepository) {
+        this.channelService = channelService;
+        this.messageRepository = messageRepository;
+    }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> create(@RequestBody Map<String, String> body) {
@@ -41,22 +46,7 @@ public class ChannelController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-    }
-
-    /*
-    @PostMapping(path = "/{channelId}/join", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> join(@PathVariable Long channelId, @RequestBody Map<String, String> body) {
-        Long userId = Long.valueOf(body.get("userId"));
-        String role = body.get("role");
-        try {
-            Channel c = channelService.joinChannel(channelId, userId, role);
-            ChannelDto dto = channelService.toDto(c, 50);
-            return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(dto);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
-    }
-     */
+   }
 
     @PostMapping(path = "/{channelId}/join", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> join(@PathVariable Long channelId, @RequestBody Map<String, String> body) {
@@ -73,27 +63,6 @@ public class ChannelController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
-    }
-
-
-    @PostMapping(path = "/{channelId}/messages", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> postMessage(@PathVariable Long channelId, @RequestBody Map<String, String> body) {
-        Long senderId = Long.valueOf(body.get("senderId"));
-        String content = body.get("content");
-        if (content == null || content.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "content required"));
-        }
-        ChannelMessage m = channelService.sendMessage(channelId, senderId, content);
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(
-                new ChannelMessageDto(m.getMessageId(), channelId, m.getSender().getUserId(), m.getSender().getUserName(), m.getContent(), m.getCreatedAt())
-        );
-    }
-
-    @GetMapping(path = "/{channelId}/messages", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<ChannelMessageDto>> listMessages(@PathVariable Long channelId,
-                                                                @RequestParam(name = "limit", required = false, defaultValue = "50") int limit) {
-        List<ChannelMessageDto> msgs = channelService.listMessages(channelId, limit);
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(msgs);
     }
 }
 

@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.example.giscord.entity.Attachment;
 import com.example.giscord.repository.AttachmentRepository;
 
-import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -52,8 +53,10 @@ public class AttachmentController {
                 .bucket(bucket)
                 .key(key)
                 .contentType(file.getContentType())
+                .contentLength(file.getSize())
                 .build(),
-            software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes())
+            // software.amazon.awssdk.core.sync.RequestBody.fromBytes(file.getBytes())
+            software.amazon.awssdk.core.sync.RequestBody.fromInputStream(file.getInputStream(), file.getSize())
         );
 
         Attachment a = new Attachment();
@@ -68,23 +71,26 @@ public class AttachmentController {
         
         return ResponseEntity
             .status(201)
-            .body(Map.of("attachmendId", a.getId()));
+            .body(Map.of("attachmentId", a.getId()));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> downloadAttachment(@PathVariable Long id) {
+        // Errors as Values is my preffered way
         Attachment attachment = attachmentRepository.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Attachment not found"));
         
-        ResponseBytes<GetObjectResponse> s3Object = s3Client.getObjectAsBytes(
+        ResponseInputStream<GetObjectResponse> s3Object = s3Client.getObject(
             GetObjectRequest.builder() 
                 .bucket(attachment.getBucket())
                 .key(attachment.getObjectKey())
-                .build());
+                .build()
+            );
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(attachment.getContentType()));
-        headers.setContentLength(s3Object.asByteArray().length);
+        // headers.setContentLength(s3Object.asByteArray().length);
+        headers.setContentLength(attachment.getSize());
         headers.setContentDisposition(
             ContentDisposition.inline()
                 .filename(attachment.getObjectKey())
@@ -94,7 +100,8 @@ public class AttachmentController {
         return ResponseEntity
             .status(200)
             .headers(headers)
-            .body(s3Object.asByteArray());
+            .body(new InputStreamResource(s3Object));
+            // .body(s3Object.asByteArray());
     }
     
 }

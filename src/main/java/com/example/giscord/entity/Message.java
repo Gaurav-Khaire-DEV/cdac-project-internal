@@ -1,13 +1,20 @@
 package com.example.giscord.entity;
 
-import jakarta.persistence.OneToMany;
-
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
-import jakarta.persistence.*;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.Table;
+
 
 @Entity
 @Table(name = "messages")
@@ -29,25 +36,48 @@ public class Message {
     @Column(nullable = false)
     private Instant createdAt;
 
-    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Attachment> attachments = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "messages_attachments",
+        joinColumns = @JoinColumn(name = "message_id"),
+        inverseJoinColumns = @JoinColumn(name = "attachment_id")
+    )
+    private Set<Attachment> attachments = new HashSet<>();
 
     public Message() {}
-
-    // getters & setters
 
     public Long getId() { return id; }
     public Long getChannelId() { return channelId; }
     public void setChannelId(Long channelId) { this.channelId = channelId; }
-
     public Long getSenderUserId() { return senderUserId; }
     public void setSenderUserId(Long senderUserId) { this.senderUserId = senderUserId; }
-
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
-
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
-    public List<Attachment> getAttachments() { return attachments; }
+    public Set<Attachment> getAttachments() { return attachments; }
+
+    public void addAttachment(Attachment attachment) {
+        attachments.add(attachment);
+        attachment.getMessages().add(this);
+    }
+
+    public void removeAttachment(Attachment attachment) {
+        attachments.remove(attachment);
+        attachment.getMessages().remove(this);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Message)) return false;
+        Message other = (Message) o;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
