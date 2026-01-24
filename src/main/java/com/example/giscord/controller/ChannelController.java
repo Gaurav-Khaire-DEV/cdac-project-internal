@@ -1,26 +1,16 @@
 package com.example.giscord.controller;
 
-import java.util.List;
-import java.util.Map;
-
+import com.example.giscord.dto.ChannelDto;
+import com.example.giscord.entity.Channel;
 import com.example.giscord.repository.MessageRepository;
+import com.example.giscord.security.CustomUserDetails;
+import com.example.giscord.service.ChannelService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.example.giscord.dto.ChannelDto;
-import com.example.giscord.dto.ChannelMessageDto;
-import com.example.giscord.entity.Channel;
-import com.example.giscord.entity.ChannelMessage;
-import com.example.giscord.security.CustomUserDetails;
-import com.example.giscord.service.ChannelService;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/channels")

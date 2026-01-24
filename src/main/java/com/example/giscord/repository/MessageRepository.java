@@ -11,4 +11,6 @@ import com.example.giscord.entity.Message;
 public interface MessageRepository extends JpaRepository<Message, Long>{
     // How the hell does this work ??
     List<Message> findTop50ByChannelIdOrderByCreatedAtDesc(Long channelId);
+
+    List<Message> findAllByChannelIdOrderByCreatedAtDesc(Long channelId);
 }

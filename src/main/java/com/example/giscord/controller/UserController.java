@@ -1,22 +1,16 @@
 package com.example.giscord.controller;
 
-import java.util.Map;
-
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.giscord.dto.UserLoginRequest;
-import com.example.giscord.dto.UserRegisterRequest;
+import com.example.giscord.dto.UserLoginRequestDto;
+import com.example.giscord.dto.UserRegisterRequestDto;
 import com.example.giscord.dto.UserResponseDto;
 import com.example.giscord.entity.User;
 import com.example.giscord.security.JwtUtil;
 import com.example.giscord.service.UserService;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,14 +25,14 @@ public class UserController {
     }
 
     @PostMapping(path = "/register", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> register(@RequestBody UserRegisterRequest req) {
-        if (req.getUsername() == null || req.getUsername().isBlank()
-                || req.getPassword() == null || req.getPassword().isBlank()) {
+    public ResponseEntity<?> register(@RequestBody UserRegisterRequestDto req) {
+        if (req.username() == null || req.username().isBlank()
+                || req.password() == null || req.password().isBlank()) {
             return ResponseEntity.badRequest().body(Map.of("error", "username and password required"));
         }
 
         try {
-            User created = userService.registerUser(req.getUsername(), req.getPassword());
+            User created = userService.registerUser(req.username(), req.password());
             UserResponseDto dto = new UserResponseDto(
                     created.getUserId(),
                     created.getUserName(),
@@ -52,55 +46,26 @@ public class UserController {
         }
     }
 
-    /*
     @PostMapping(path = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> login(@RequestBody UserLoginRequest req) {
-        if (req.getUsername() == null || req.getPassword() == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "username and password required"));
-        }
-
-        boolean ok = userService.verifyPassword(req.getUsername(), req.getPassword());
-        if (!ok) {
-            return ResponseEntity.status(401).body(Map.of("error", "invalid credentials"));
-        }
-
-        // Minimal for now: return a success message + user info.
-        // Later: replace with JWT token and remove password-based auth in headers.
-        var userOpt = userService.getAllUsers().stream()
-                .filter(u -> req.getUsername().equals(u.getUserName()))
-                .findFirst();
-
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(500).body(Map.of("error", "unexpected error"));
-        }
-
-        User user = userOpt.get();
-        UserResponseDto dto = new UserResponseDto(user.getUserId(), user.getUserName(), user.getCreatedAt(), user.getUpdatedAt());
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(Map.of("message", "login successful", "user", dto));
-    }
-
-     */
-
-
-    @PostMapping(path = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> login(@RequestBody UserLoginRequest req) {
-        if (req.getUsername() == null || req.getPassword() == null) {
+    public ResponseEntity<?> login(@RequestBody UserLoginRequestDto req) {
+        if (req.username() == null || req.password() == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "username and password required"));
         }
 
         // authenticate using AuthenticationManager or manual check + token creation
-        boolean ok = userService.verifyPassword(req.getUsername(), req.getPassword());
+        boolean ok = userService.verifyPassword(req.username(), req.password());
         if (!ok) {
             return ResponseEntity.status(401).body(Map.of("error", "invalid credentials"));
         }
 
         // load user and create token
-        var userOpt = userService.findByUserName(req.getUsername()); // add this helper in service
+        var userOpt = userService.findByUserName(req.username()); // add this helper in service
         if (userOpt.isEmpty()) return ResponseEntity.status(500).body(Map.of("error", "unexpected"));
 
         var user = userOpt.get();
         String token = jwtUtil.generateToken(user.getUserId(), user.getUserName());
 
+        // TODO: cleanup wrap into a toUserResponseDto (in UserService ??)
         UserResponseDto dto = new UserResponseDto(user.getUserId(), user.getUserName(), user.getCreatedAt(), user.getUpdatedAt());
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(Map.of("token", token, "user", dto));
     }

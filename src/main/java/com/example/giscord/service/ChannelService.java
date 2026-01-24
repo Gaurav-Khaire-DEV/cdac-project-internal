@@ -2,7 +2,8 @@ package com.example.giscord.service;
 
 import com.example.giscord.dto.ChannelDto;
 import com.example.giscord.dto.ChannelMemberDto;
-import com.example.giscord.dto.ChannelMessageDto;
+import com.example.giscord.dto.MemberDto;
+import com.example.giscord.dto.MessageDto;
 import com.example.giscord.entity.*;
 import com.example.giscord.repository.*;
 import org.springframework.data.domain.PageRequest;
@@ -20,13 +21,13 @@ public class ChannelService {
     private final GuildRepository guildRepo;
     private final UserRepository userRepo;
     private final ChannelMembershipRepository membershipRepo;
-    private final ChannelMessageRepository messageRepo;
+    private final MessageRepository messageRepo;
 
     public ChannelService(ChannelRepository channelRepo,
                           GuildRepository guildRepo,
                           UserRepository userRepo,
                           ChannelMembershipRepository membershipRepo,
-                          ChannelMessageRepository messageRepo) {
+                          MessageRepository messageRepo) {
         this.channelRepo = channelRepo;
         this.guildRepo = guildRepo;
         this.userRepo = userRepo;
@@ -72,15 +73,6 @@ public class ChannelService {
         return channel;
     }
 
-    @Transactional
-    public ChannelMessage sendMessage(Long channelId, Long senderId, String content) {
-        Channel channel = channelRepo.findById(channelId).orElseThrow(() -> new IllegalArgumentException("channel not found"));
-        User sender = userRepo.findById(senderId).orElseThrow(() -> new IllegalArgumentException("user not found"));
-
-        ChannelMessage m = new ChannelMessage(channel, sender, content);
-        return messageRepo.save(m);
-    }
-
     @Transactional(readOnly = true)
     public Optional<Channel> findByIdWithMembers(Long id) {
         return channelRepo.findByIdWithMembersAndUsers(id);
@@ -93,9 +85,9 @@ public class ChannelService {
 
     @Transactional(readOnly = true)
     public ChannelDto toDto(Channel c, int memberLimit) {
-        List<ChannelMemberDto> members = c.getMembers().stream()
+        List<MemberDto> members = c.getMembers().stream()
                 .limit(memberLimit > 0 ? memberLimit : Integer.MAX_VALUE)
-                .map(cm -> new ChannelMemberDto(
+                .map(cm -> new MemberDto(
                         cm.getUser().getUserId(),
                         cm.getUser().getUserName(),
                         cm.getRole(),
@@ -115,17 +107,19 @@ public class ChannelService {
     }
 
     @Transactional(readOnly = true)
-    public List<ChannelMessageDto> listMessages(Long channelId, int limit) {
+    public List<MessageDto> listMessages(Long channelId, int limit) {
         var page = PageRequest.of(0, Math.max(1, limit));
-        List<ChannelMessage> msgs = messageRepo.findByChannelIdOrderByCreatedAtDesc(channelId, page);
+        List<Message> msgs = messageRepo.findAllByChannelIdOrderByCreatedAtDesc(channelId);
         return msgs.stream()
-                .map(m -> new ChannelMessageDto(
-                        m.getMessageId(),
-                        m.getChannel().getChannelId(),
-                        m.getSender().getUserId(),
-                        m.getSender().getUserName(),
+                .map(m -> new MessageDto(
+                        m.getId(),
+                        m.getChannelId(),
+                        m.getSenderUserId(),
                         m.getContent(),
-                        m.getCreatedAt()
+                        m.getCreatedAt(),
+                        m.getAttachments().stream()
+                                .map(Attachment::getId)
+                                .collect(Collectors.toList())
                 ))
                 .collect(Collectors.toList());
     }

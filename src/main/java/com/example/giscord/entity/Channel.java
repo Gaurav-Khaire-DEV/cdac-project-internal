@@ -1,6 +1,7 @@
 package com.example.giscord.entity;
 
 import jakarta.persistence.*;
+
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -29,7 +30,7 @@ public class Channel {
     private Set<ChannelMembership> members = new HashSet<>();
 
     @OneToMany(mappedBy = "channel", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<ChannelMessage> messages = new HashSet<>();
+    private Set<Message> messages = new HashSet<>();
 
     public Channel() {}
 
@@ -50,7 +51,7 @@ public class Channel {
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
     public Set<ChannelMembership> getMembers() { return members; }
-    public Set<ChannelMessage> getMessages() { return messages; }
+    public Set<Message> getMessages() { return messages; }
 
     public void setGuild(Guild guild) { this.guild = guild; }
     public void setAdminUser(User adminUser) { this.adminUser = adminUser; }
