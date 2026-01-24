@@ -15,16 +15,16 @@ public interface ChannelRepository extends JpaRepository<Channel, Long> {
     // Why are there left joins here ??
     // What exactly do they mean ??
     // Are they optimized ?? Overengineered ??
-    @Query("select c from Channel c " +
-            "left join fetch c.members cm " +
-            "left join fetch cm.user u " +
-            "where c.channelId = :id")
-    Optional<Channel> findByIdWithMembersAndUsers(@Param("id") Long id);
-
-    @Query("select c from Channel c " +
-            "left join fetch c.messages m " +
-            "left join fetch m.sender s " +
-            "where c.channelId = :id")
-    Optional<Channel> findByIdWithMessagesAndSenders(@Param("id") Long id);
+//    @Query("select c from Channel c " +
+//            "left join fetch c.members cm " +
+//            "left join fetch cm.user u " +
+//            "where c.channelId = :id")
+//    Optional<Channel> findByIdWithMembersAndUsers(@Param("id") Long id);
+//
+//    @Query("select c from Channel c " +
+//            "left join fetch c.messages m " +
+//            "left join fetch m.sender s " +
+//            "where c.channelId = :id")
+//    Optional<Channel> findByIdWithMessagesAndSenders(@Param("id") Long id);
 }
 

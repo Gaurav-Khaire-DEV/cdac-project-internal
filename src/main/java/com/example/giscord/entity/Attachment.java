@@ -43,6 +43,7 @@ public class Attachment {
         return id != null && id.equals(other.id);
     }
 
+    // TODO: Check if this is correct ??
     @Override
     public int hashCode() {
         return getClass().hashCode();

@@ -74,16 +74,6 @@ public class ChannelService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<Channel> findByIdWithMembers(Long id) {
-        return channelRepo.findByIdWithMembersAndUsers(id);
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<Channel> findByIdWithMessages(Long id) {
-        return channelRepo.findByIdWithMessagesAndSenders(id);
-    }
-
-    @Transactional(readOnly = true)
     public ChannelDto toDto(Channel c, int memberLimit) {
         List<MemberDto> members = c.getMembers().stream()
                 .limit(memberLimit > 0 ? memberLimit : Integer.MAX_VALUE)
