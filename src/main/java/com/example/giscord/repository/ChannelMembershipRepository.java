@@ -8,6 +8,8 @@ import org.springframework.stereotype.Repository;
 import com.example.giscord.entity.ChannelMembership;
 import com.example.giscord.entity.ChannelMembershipId;
 
+import java.util.List;
+
 @Repository
 public interface ChannelMembershipRepository extends JpaRepository<ChannelMembership, ChannelMembershipId> {
     @Query("""
@@ -20,4 +22,11 @@ public interface ChannelMembershipRepository extends JpaRepository<ChannelMember
             @Param("channelId") Long channelId,
             @Param("userId") Long userId
     );
+
+    @Query("""
+        select cm.id.channelId from
+        ChannelMembership cm
+        where cm.id.userId = :userId
+    """)
+    public List<Long> findChannelIdByUserId(@Param("userId") Long userId);
 }

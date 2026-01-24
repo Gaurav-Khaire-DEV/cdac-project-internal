@@ -2,6 +2,7 @@ package com.example.giscord.dto;
 
 import java.time.Instant;
 
+// TODO: Which Member ?? Channel or Guild ??
 public class MemberDto {
     private Long userId;
     private String userName;

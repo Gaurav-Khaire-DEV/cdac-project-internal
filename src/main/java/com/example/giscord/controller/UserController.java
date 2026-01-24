@@ -1,5 +1,6 @@
 package com.example.giscord.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.MediaType;
@@ -52,36 +53,6 @@ public class UserController {
         }
     }
 
-    /*
-    @PostMapping(path = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> login(@RequestBody UserLoginRequest req) {
-        if (req.getUsername() == null || req.getPassword() == null) {
-            return ResponseEntity.badRequest().body(Map.of("error", "username and password required"));
-        }
-
-        boolean ok = userService.verifyPassword(req.getUsername(), req.getPassword());
-        if (!ok) {
-            return ResponseEntity.status(401).body(Map.of("error", "invalid credentials"));
-        }
-
-        // Minimal for now: return a success message + user info.
-        // Later: replace with JWT token and remove password-based auth in headers.
-        var userOpt = userService.getAllUsers().stream()
-                .filter(u -> req.getUsername().equals(u.getUserName()))
-                .findFirst();
-
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(500).body(Map.of("error", "unexpected error"));
-        }
-
-        User user = userOpt.get();
-        UserResponseDto dto = new UserResponseDto(user.getUserId(), user.getUserName(), user.getCreatedAt(), user.getUpdatedAt());
-        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(Map.of("message", "login successful", "user", dto));
-    }
-
-     */
-
-
     @PostMapping(path = "/login", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> login(@RequestBody UserLoginRequest req) {
         if (req.getUsername() == null || req.getPassword() == null) {
@@ -112,5 +83,32 @@ public class UserController {
         return userService.findById(id)
                 .map(u -> ResponseEntity.ok().body(new UserResponseDto(u.getUserId(), u.getUserName(), u.getCreatedAt(), u.getUpdatedAt())))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{userId}/channels")
+    public ResponseEntity<?> getAllChannelIdsByUserId(@PathVariable Long userId) {
+        List<Long> channelIdsByUserId = userService.getAllChannelIdsByUserId(userId);
+        if (channelIdsByUserId == null || channelIdsByUserId.isEmpty()) {
+            return ResponseEntity
+                    .status(200)
+                    .body("User isn't subscribed to any channels Yet");
+        }
+
+        return ResponseEntity
+                .status(200)
+                .body(channelIdsByUserId);
+    }
+
+    @GetMapping("/{userId}/guilds")
+    public ResponseEntity<?> getAllGuildIdsByUserId(@PathVariable Long userId) {
+        List<Long> guildIdsByUserId = userService.getAllGuildIdsByUserId(userId);
+        if (guildIdsByUserId == null || guildIdsByUserId.isEmpty()) {
+            return ResponseEntity
+                    .status(200)
+                    .body("User isn't subscribed to any guilds Yet");
+        }
+        return ResponseEntity
+                .status(200)
+                .body(guildIdsByUserId);
     }
 }
