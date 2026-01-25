@@ -1,5 +1,6 @@
 package com.example.giscord.ws;
 
+import java.io.IOException;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Map;
@@ -102,7 +103,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         System.out.println("WS disconnected: " + session.getId());
     }
 
-    private void handleJoin(WebSocketSession session, Long userId, WsMessage msg) {
+    private void handleJoin(WebSocketSession session, Long userId, WsMessage msg) throws IOException {
         Long channelId = msg.getChannelId();
         if (channelId == null) {
             sendError(session, "channelId required");
@@ -121,6 +122,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 .computeIfAbsent(channelId, k -> ConcurrentHashMap.newKeySet())
                 .add(session);
 
+        session.sendMessage(new TextMessage("Welcome to Channel: " + channelId));
         System.out.println("User " + userId + " joined channel " + channelId);
     }
 
@@ -163,13 +165,14 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             Instant.now()
         );
 
+        redisStringTemplate
+                .opsForSet()
+                .add("active:channels", String.valueOf(channelId));
+
         redisMessageTemplate
             .opsForList()
-            .rightPush("channel:" + channelId + ":pending", rm);
+            .rightPush("channel:" + channelId, rm);
 
-        redisStringTemplate
-            .opsForSet()
-            .add("active:channels", String.valueOf(channelId));
 
 
         String outgoing = objectMapper.writeValueAsString(msg);

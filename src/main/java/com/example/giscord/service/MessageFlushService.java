@@ -36,7 +36,6 @@ public class MessageFlushService {
 
     @Scheduled(fixedDelay = 5000)
     public void flush() {
-        
         Set<String> channelIds = redisStringTemplate.opsForSet().members("active:channels");
 
         if (channelIds == null || channelIds.isEmpty()) {
