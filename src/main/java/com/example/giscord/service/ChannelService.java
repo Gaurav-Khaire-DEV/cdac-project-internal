@@ -1,7 +1,6 @@
 package com.example.giscord.service;
 
 import com.example.giscord.dto.ChannelDto;
-import com.example.giscord.dto.ChannelMemberDto;
 import com.example.giscord.dto.MemberDto;
 import com.example.giscord.dto.MessageDto;
 import com.example.giscord.entity.*;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,7 +73,7 @@ public class ChannelService {
 
     @Transactional(readOnly = true)
     public ChannelDto toDto(Channel c, int memberLimit) {
-        List<MemberDto> members = c.getMembers().stream()
+        List<MemberDto> members = membershipRepo.findByIdChannelId(c.getChannelId()).stream()
                 .limit(memberLimit > 0 ? memberLimit : Integer.MAX_VALUE)
                 .map(cm -> new MemberDto(
                         cm.getUser().getUserId(),
@@ -83,15 +81,19 @@ public class ChannelService {
                         cm.getRole(),
                         cm.getJoinedAt()
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
         return new ChannelDto(
                 c.getChannelId(),
                 c.getGuild().getGuildId(),
                 c.getAdminUser().getUserId(),
                 c.getChannelName(),
+                c.getDescription(),
                 c.getCreatedAt(),
                 c.getUpdatedAt(),
+                c.getIconAttachment() != null
+                        ? c.getIconAttachment().getId()
+                        : null,
                 members
         );
     }

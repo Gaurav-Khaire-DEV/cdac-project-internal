@@ -1,19 +1,20 @@
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/spring_user_001_giscord_db?useSSL=false&allowPublicKeyRetrieval=true
-    username: spring_user_001
-    password: springpass
+    url: jdbc:mysql://localhost:3307/discord_db?useSSL=false&allowPublicKeyRetrieval=true
+    username: discord
+    password: discord
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update   # (auto-creates tables)
+      ddl-auto: validate
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
         show_sql: true
   flyway:
-    enabled: false       # we’ll rely on JPA auto-creation for now
+    enabled: true       # we’ll rely on JPA auto-creation for now
 
 logging:
   level:

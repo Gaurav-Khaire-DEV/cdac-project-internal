@@ -1,54 +1,65 @@
 package com.example.giscord.entity;
 
 import jakarta.persistence.*;
+
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "guilds")
 public class Guild {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long guildId;
 
     @Column(nullable = false)
     private String guildName;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
 
-    // One guild has many memberships
-    @OneToMany(mappedBy = "guild", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<GuildMembership> members = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "icon_attachment_id")
+    private Attachment iconAttachment;
 
-    public Guild() {}
+    protected Guild() {}
 
     public Guild(String guildName) {
         this.guildName = guildName;
     }
 
     @PreUpdate
-    public void onUpdate() {
+    void onUpdate() {
         this.updatedAt = Instant.now();
     }
 
-    // convenience helper to add membership
-    public void addMember(GuildMembership gm) {
-        members.add(gm);
-        gm.setGuild(this);
-    }
-
-    public void removeMember(GuildMembership gm) {
-        members.remove(gm);
-        gm.setGuild(null);
-    }
-
-    // getters/setters
     public Long getGuildId() { return guildId; }
     public String getGuildName() { return guildName; }
+    public String getDescription() { return description; }
+    public Attachment getIconAttachment() { return iconAttachment; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
-    public Set<GuildMembership> getMembers() { return members; }
+
     public void setGuildName(String guildName) { this.guildName = guildName; }
+    public void setDescription(String description) { this.description = description; }
+    public void setIconAttachment(Attachment iconAttachment) {
+        this.iconAttachment = iconAttachment;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Guild)) return false;
+        Guild other = (Guild) o;
+        return guildId != null && guildId.equals(other.guildId);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
 

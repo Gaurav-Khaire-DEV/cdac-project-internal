@@ -5,6 +5,8 @@ import java.time.Instant;
 public record UserResponseDto (
     Long userId,
     String userName,
+    String description,
     Instant createdAt,
-    Instant updatedAt
+    Instant updatedAt,
+    Long profileAttachmentId
 ) {}

@@ -8,7 +8,9 @@ public record ChannelDto (
         Long guildId,
         Long adminUserId,
         String channelName,
+        String description,
         Instant createdAt,
         Instant updatedAt,
+        Long iconAttachmentId,
         List<MemberDto> members
 ) {}

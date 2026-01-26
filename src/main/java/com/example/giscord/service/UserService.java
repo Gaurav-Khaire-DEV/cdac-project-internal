@@ -1,9 +1,12 @@
 package com.example.giscord.service;
 
+import com.example.giscord.dto.UserResponseDto;
 import com.example.giscord.entity.User;
 import com.example.giscord.repository.ChannelMembershipRepository;
 import com.example.giscord.repository.GuildMembershipRepository;
 import com.example.giscord.repository.UserRepository;
+import com.example.giscord.repository.projection.ChannelIdNameView;
+import com.example.giscord.repository.projection.GuildIdNameView;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,9 +28,10 @@ public class UserService {
         this.guildMembershipRepository = guildMembershipRepository;
     }
 
-    public User registerUser(String userName, String plainPassword) {
+    public User registerUser(String userName, String plainPassword, String description) {
         String hashed = encoder.encode(plainPassword);
         User user = new User(userName, hashed);
+        user.setDescription(description); // TODO: why not modify the ctor ??
         return userRepository.save(user);
     }
 
@@ -49,11 +53,24 @@ public class UserService {
         return userRepository.findAll();
     }
 
-    public List<Long> getAllChannelIdsByUserId(Long userId) {
-        return channelMembershipRepository.findChannelIdByUserId(userId);
+    public UserResponseDto toDto(User user) {
+        return new UserResponseDto(
+            user.getUserId(),
+            user.getUserName(),
+            user.getDescription(),
+            user.getCreatedAt(),
+            user.getUpdatedAt(),
+            user.getProfileAttachment() != null
+                ? user.getProfileAttachment().getId()
+                : null
+        );
     }
 
-    public List<Long> getAllGuildIdsByUserId(Long userId) {
-        return guildMembershipRepository.findGuildIdByUserId(userId);
+    public List<ChannelIdNameView> getAllChannelIdsAndNamesByUserId(Long userId) {
+        return channelMembershipRepository.findChannelIdAndNameFromUserId(userId);
+    }
+
+    public List<GuildIdNameView> getAllGuildIdsAndNamesByUserId(Long userId) {
+        return guildMembershipRepository.findGuildIdAndNameFromUserId(userId);
     }
 }

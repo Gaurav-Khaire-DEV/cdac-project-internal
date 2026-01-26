@@ -30,44 +30,47 @@ public class GuildService {
         this.membershipRepo = membershipRepo;
     }
 
-    public Guild createGuild(String name) {
-        Guild g = new Guild(name);
-        return guildRepo.save(g);
+    @Transactional
+    public Guild createGuild(String name, Long ownerUserId, String description) {
+        User owner = userRepo.findById(ownerUserId).orElseThrow(() -> new IllegalArgumentException("Owner User for Guild not found"));
+        Guild guild = new Guild(name);
+        guild.setDescription(description);
+
+        Guild saved = guildRepo.save(guild);
+        GuildMembership gm = new GuildMembership(saved, owner, "owner");
+        membershipRepo.save(gm);
+
+        return saved;
     }
 
     @Transactional
-    public Guild joinGuild(Long guildId, Long userId, String role) {
+    public boolean joinGuild(Long guildId, Long userId, String role) {
+
+        if (membershipRepo.existsById(new GuildMembershipId(guildId, userId))) {
+            return false;
+        }
 
         Guild guild = guildRepo.findById(guildId).orElseThrow(() -> new IllegalArgumentException("guild not found"));
         User user = userRepo.findById(userId).orElseThrow(() -> new IllegalArgumentException("user not found"));
 
-        // if membership exists, return guild
-        GuildMembershipId gid = new GuildMembershipId(guildId, userId);
-        if (membershipRepo.existsById(gid)) return guild;
-
-        GuildMembership gm = new GuildMembership();
-        gm.setGuild(guild);
-        gm.setUser(user);
-        gm.setRole(role == null ? "member" : role);
-
-        // set embedded id explicitly to avoid surprises
-        gm.getId().setGuildId(guildId);
-        gm.getId().setUserId(userId);
+        GuildMembership gm = new GuildMembership(
+                guild,
+                user,
+                role == null ? "member" : role
+        );
 
         membershipRepo.save(gm);
 
-        // refresh and return
-        // JUGAAD: should be updated
-        // TODO: Member limit is 100 for no reason
-        return guildRepo.findById(guildId).orElseThrow();
+        return true;
     }
 
     public Optional<Guild> findById(Long id) {
         return guildRepo.findById(id);
     }
 
+    @Transactional(readOnly = true)
     public GuildDto toDto(Guild guild, int memberLimit) {
-        List<MemberDto> members = guild.getMembers().stream()
+        List<MemberDto> members = membershipRepo.findByIdGuildId(guild.getGuildId()).stream()
                 .limit(memberLimit > 0 ? memberLimit : Long.MAX_VALUE)
                 .map(gm -> new MemberDto(
                         gm.getUser().getUserId(),
@@ -75,13 +78,17 @@ public class GuildService {
                         gm.getRole(),
                         gm.getJoinedAt()
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
         return new GuildDto(
                 guild.getGuildId(),
                 guild.getGuildName(),
+                guild.getDescription(),
                 guild.getCreatedAt(),
                 guild.getUpdatedAt(),
+                guild.getIconAttachment() != null
+                        ? guild.getIconAttachment().getId()
+                        : null,
                 members
         );
     }

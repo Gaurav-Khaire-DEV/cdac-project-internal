@@ -32,13 +32,8 @@ public class UserController {
         }
 
         try {
-            User created = userService.registerUser(req.username(), req.password());
-            UserResponseDto dto = new UserResponseDto(
-                    created.getUserId(),
-                    created.getUserName(),
-                    created.getCreatedAt(),
-                    created.getUpdatedAt()
-            );
+            User created = userService.registerUser(req.username(), req.password(), req.description());
+            UserResponseDto dto = userService.toDto(created);
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(dto);
         } catch (Exception e) {
             // handle duplicate username or DB constraint violations
@@ -65,8 +60,8 @@ public class UserController {
         var user = userOpt.get();
         String token = jwtUtil.generateToken(user.getUserId(), user.getUserName());
 
-        // TODO: cleanup wrap into a toUserResponseDto (in UserService ??)
-        UserResponseDto dto = new UserResponseDto(user.getUserId(), user.getUserName(), user.getCreatedAt(), user.getUpdatedAt());
+
+        UserResponseDto dto = userService.toDto(user);
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(Map.of("token", token, "user", dto));
     }
 
@@ -75,7 +70,17 @@ public class UserController {
     @GetMapping(path = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> getUser(@PathVariable Long id) {
         return userService.findById(id)
-                .map(u -> ResponseEntity.ok().body(new UserResponseDto(u.getUserId(), u.getUserName(), u.getCreatedAt(), u.getUpdatedAt())))
+                .map(u -> ResponseEntity.ok().body(userService.toDto(u)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/{id}/guilds")
+    public ResponseEntity<?> getGuilds(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getAllGuildIdsAndNamesByUserId(id));
+    }
+
+    @GetMapping("/{id}/channels")
+    public ResponseEntity<?> getChannels(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getAllChannelIdsAndNamesByUserId(id));
     }
 }

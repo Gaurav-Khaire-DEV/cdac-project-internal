@@ -11,10 +11,12 @@ public class GuildMembership {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("guildId")
+    @JoinColumn(name = "guild_id")
     private Guild guild;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(nullable = false)

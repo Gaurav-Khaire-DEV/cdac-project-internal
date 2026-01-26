@@ -11,10 +11,12 @@ public class ChannelMembership {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("channelId")
+    @JoinColumn(name = "channel_id")
     private Channel channel;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
+    @JoinColumn(name = "user_id")
     private User user;
 
     @Column(nullable = false)

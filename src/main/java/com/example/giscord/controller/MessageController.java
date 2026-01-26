@@ -11,7 +11,7 @@ import com.example.giscord.entity.Message;
 import com.example.giscord.repository.MessageRepository;
 
 @RestController
-@RequestMapping("/api/channels")
+@RequestMapping("/api/messages")
 public class MessageController {
 
     private final MessageRepository messageRepository;
@@ -20,11 +20,9 @@ public class MessageController {
         this.messageRepository = messageRepository;
     }
 
-
-    // TODO: MessageService ??
-    // TODO: MessageDto ??
-    @GetMapping("/{channelId}/messages")
+    @GetMapping("/{channelId}")
     public List<Message> getMessages(@PathVariable Long channelId) {
+        // TODO: MessageService -> toDto(Message) => MessageDto
         return messageRepository.findTop50ByChannelIdOrderByCreatedAtDesc(channelId);
     }
     

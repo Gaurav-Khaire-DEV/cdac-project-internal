@@ -1,32 +1,34 @@
 package com.example.giscord.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+
 import java.time.Instant;
-import java.util.HashSet;
-import java.util.Set;
 
 @Entity
 @Table(name = "users")
 public class User {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false, unique = true)
     private String userName;
 
     @Column(nullable = false)
-    @JsonIgnore
     private String passwordHash;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     private Instant createdAt = Instant.now();
     private Instant updatedAt = Instant.now();
 
-    // bidirectional convenience (not required right now)
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<GuildMembership> guildMemberships = new HashSet<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_attachment_id")
+    private Attachment profileAttachment;
 
-    public User() {}
+    protected User() {}
 
     public User(String userName, String passwordHash) {
         this.userName = userName;
@@ -34,18 +36,35 @@ public class User {
     }
 
     @PreUpdate
-    public void onUpdate() {
+    void onUpdate() {
         this.updatedAt = Instant.now();
     }
 
-    // getters/setters
     public Long getUserId() { return userId; }
     public String getUserName() { return userName; }
-    public String getPasswordHash() { return passwordHash; } // keep but it's @JsonIgnore
+    public String getPasswordHash() { return passwordHash; }
+    public String getDescription() { return description; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getUpdatedAt() { return updatedAt; }
-    public Set<GuildMembership> getGuildMemberships() { return guildMemberships; }
+    public Attachment getProfileAttachment() { return profileAttachment; }
 
     public void setUserName(String userName) { this.userName = userName; }
     public void setPasswordHash(String passwordHash) { this.passwordHash = passwordHash; }
+    public void setDescription(String description) { this.description = description; }
+    public void setProfileAttachment(Attachment profileAttachment) {
+        this.profileAttachment = profileAttachment;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User other = (User) o;
+        return userId != null && userId.equals(other.userId);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
 }
