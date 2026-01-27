@@ -1,9 +1,6 @@
 package com.example.giscord.service;
 
-import com.example.giscord.entity.User;
-import com.example.giscord.entity.Guild;
-import com.example.giscord.entity.GuildMembership;
-import com.example.giscord.entity.GuildMembershipId;
+import com.example.giscord.entity.*;
 
 import com.example.giscord.dto.GuildDto;
 import com.example.giscord.dto.MemberDto;
@@ -11,6 +8,7 @@ import com.example.giscord.dto.MemberDto;
 import com.example.giscord.repository.GuildMembershipRepository;
 import com.example.giscord.repository.GuildRepository;
 import com.example.giscord.repository.UserRepository;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,6 +89,13 @@ public class GuildService {
                         : null,
                 members
         );
+    }
+
+    public boolean setIcon(Long guildId, Attachment attachment) throws Exception {
+        Guild guild = guildRepo.findById(guildId).orElseThrow(() -> new BadRequestException("GuildId is invalid ..."));
+        guild.setIconAttachment(attachment);
+        guildRepo.save(guild);
+        return true;
     }
 }
 

@@ -5,11 +5,13 @@ import com.example.giscord.dto.MemberDto;
 import com.example.giscord.dto.MessageDto;
 import com.example.giscord.entity.*;
 import com.example.giscord.repository.*;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,7 +76,7 @@ public class ChannelService {
     @Transactional(readOnly = true)
     public ChannelDto toDto(Channel c, int memberLimit) {
         List<MemberDto> members = membershipRepo.findByIdChannelId(c.getChannelId()).stream()
-                .limit(memberLimit > 0 ? memberLimit : Integer.MAX_VALUE)
+                .limit(memberLimit > 0 ? memberLimit : Long.MAX_VALUE)
                 .map(cm -> new MemberDto(
                         cm.getUser().getUserId(),
                         cm.getUser().getUserName(),
@@ -114,6 +116,20 @@ public class ChannelService {
                                 .collect(Collectors.toList())
                 ))
                 .collect(Collectors.toList());
+    }
+
+    public ChannelDto getChannelById(Long id) throws Exception {
+        Channel channel = channelRepo.findById(id).orElseThrow(() -> new BadRequestException("Invalid channelId ..."));
+        return toDto(channel, 50);
+    }
+
+    public boolean setIcon(Long channelId, Attachment attachment) throws Exception {
+        Channel channel = channelRepo.findById(channelId).orElseThrow(() -> new BadRequestException("ChannelId in invalid ..."));
+
+        channel.setIconAttachment(attachment);
+        channelRepo.save(channel);
+
+        return true;
     }
 }
 

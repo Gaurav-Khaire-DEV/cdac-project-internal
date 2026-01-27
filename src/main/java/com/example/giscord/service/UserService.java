@@ -1,12 +1,14 @@
 package com.example.giscord.service;
 
 import com.example.giscord.dto.UserResponseDto;
+import com.example.giscord.entity.Attachment;
 import com.example.giscord.entity.User;
 import com.example.giscord.repository.ChannelMembershipRepository;
 import com.example.giscord.repository.GuildMembershipRepository;
 import com.example.giscord.repository.UserRepository;
 import com.example.giscord.repository.projection.ChannelIdNameView;
 import com.example.giscord.repository.projection.GuildIdNameView;
+import org.apache.coyote.BadRequestException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -72,5 +74,13 @@ public class UserService {
 
     public List<GuildIdNameView> getAllGuildIdsAndNamesByUserId(Long userId) {
         return guildMembershipRepository.findGuildIdAndNameFromUserId(userId);
+    }
+
+    public boolean setProfilePicture(Long userId, Attachment attachment) throws Exception {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BadRequestException("Invalid userId it seems ..."));
+        user.setProfileAttachment(attachment);
+        userRepository.save(user);
+        return true;
     }
 }

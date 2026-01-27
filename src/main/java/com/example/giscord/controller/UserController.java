@@ -3,9 +3,12 @@ package com.example.giscord.controller;
 import com.example.giscord.dto.UserLoginRequestDto;
 import com.example.giscord.dto.UserRegisterRequestDto;
 import com.example.giscord.dto.UserResponseDto;
+import com.example.giscord.entity.Attachment;
 import com.example.giscord.entity.User;
+import com.example.giscord.repository.AttachmentRepository;
 import com.example.giscord.security.JwtUtil;
 import com.example.giscord.service.UserService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +21,12 @@ public class UserController {
 
     private final UserService userService;
     private final JwtUtil jwtUtil;
+    private final AttachmentRepository attachmentRepository; // TODO: Don't be lazy write a service instead
 
-    public UserController(UserService userService, JwtUtil jwtUtil) { 
+    public UserController(UserService userService, JwtUtil jwtUtil, AttachmentRepository attachmentRepository) {
         this.userService = userService; 
         this.jwtUtil = jwtUtil;
+        this.attachmentRepository = attachmentRepository;
     }
 
     @PostMapping(path = "/register", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -82,5 +87,19 @@ public class UserController {
     @GetMapping("/{id}/channels")
     public ResponseEntity<?> getChannels(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getAllChannelIdsAndNamesByUserId(id));
+    }
+
+    // TODO: Move away from try-catch style to errors by value (* Complete Codebase refactor)
+    @PostMapping("/{id}/profile-picture")
+    public ResponseEntity<?> setProfilePicture(@PathVariable Long id, @RequestBody Map<String, Long> request) throws Exception {
+        // TODO: check whether attachment exists -> check if user has permission for it
+        Long attachmentId = request.get("attachmentId");
+        Attachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new BadRequestException("Invalid Attachment Id it seems ..."));
+
+        if (userService.setProfilePicture(id, attachment)) {
+            return ResponseEntity.ok(Map.of("updated_attachment_id", attachmentId));
+        }
+        return ResponseEntity.badRequest().body("Failed to update attachment_id");
     }
 }
