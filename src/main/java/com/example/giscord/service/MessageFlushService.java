@@ -65,12 +65,7 @@ public class MessageFlushService {
                 
                 if (rm.attachmentIds() != null && !rm.attachmentIds().isEmpty()) {
                     List<Attachment> attachments = attachmentRepository.findAllById(rm.attachmentIds());
-                    m.getAttachments().addAll(attachments);
-
-                    for (Attachment attachment: attachments) {
-                        m.addAttachment(attachment);
-                    }
-
+                    attachments.forEach(m::addAttachment);
                 }
                 messageRepository.save(m);
             }

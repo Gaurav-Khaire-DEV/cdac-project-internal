@@ -85,6 +85,11 @@ public class UserController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}/loadui")
+    public ResponseEntity<?> getGuildAndChannels(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getAllGuildsAndChannels(id));
+    }
+
 
     @GetMapping("/{id}/guilds")
     public ResponseEntity<?> getGuilds(@PathVariable Long id) {
