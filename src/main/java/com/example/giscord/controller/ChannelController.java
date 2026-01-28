@@ -1,25 +1,27 @@
 package com.example.giscord.controller;
 
-import com.example.giscord.dto.ChannelDto;
-import com.example.giscord.entity.Attachment;
-import com.example.giscord.entity.Channel;
-import com.example.giscord.entity.Guild;
-import com.example.giscord.repository.AttachmentRepository;
-import com.example.giscord.repository.ChannelRepository;
-import com.example.giscord.repository.GuildRepository;
-import com.example.giscord.repository.MessageRepository;
-import com.example.giscord.security.CustomUserDetails;
-import com.example.giscord.service.ChannelService;
+import java.util.Map;
+
 import org.apache.coyote.BadRequestException;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.*;
-import software.amazon.awssdk.core.sync.ResponseTransformer;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-import java.util.Optional;
+import com.example.giscord.dto.ChannelDto;
+import com.example.giscord.entity.Attachment;
+import com.example.giscord.entity.Channel;
+import com.example.giscord.repository.AttachmentRepository;
+import com.example.giscord.repository.MessageRepository;
+import com.example.giscord.security.CustomUserDetails;
+import com.example.giscord.service.ChannelService;
+
 
 @RestController
 @RequestMapping("/api/channels")
@@ -68,6 +70,7 @@ public class ChannelController {
 
 
     @GetMapping("/{id}")
+    @Transactional(readOnly = true)
     public ResponseEntity<?> getChannelById(@PathVariable Long id) throws Exception {
         ChannelDto channelDto = channelService.getChannelById(id);
         return ResponseEntity.ok(channelDto);

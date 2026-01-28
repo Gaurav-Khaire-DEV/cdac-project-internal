@@ -1,5 +1,17 @@
 package com.example.giscord.controller;
 
+import java.util.Map;
+
+import org.apache.coyote.BadRequestException;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.example.giscord.dto.UserLoginRequestDto;
 import com.example.giscord.dto.UserRegisterRequestDto;
 import com.example.giscord.dto.UserResponseDto;
@@ -8,12 +20,6 @@ import com.example.giscord.entity.User;
 import com.example.giscord.repository.AttachmentRepository;
 import com.example.giscord.security.JwtUtil;
 import com.example.giscord.service.UserService;
-import org.apache.coyote.BadRequestException;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -78,6 +84,7 @@ public class UserController {
                 .map(u -> ResponseEntity.ok().body(userService.toDto(u)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
 
     @GetMapping("/{id}/guilds")
     public ResponseEntity<?> getGuilds(@PathVariable Long id) {
