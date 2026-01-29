@@ -1,10 +1,12 @@
 package com.example.giscord.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -66,6 +68,14 @@ public class ChannelController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
+    }
+
+    @GetMapping("/guild/{guildId}")
+    public ResponseEntity<List<ChannelDto>> getUserChannels(@PathVariable Long guildId) {
+        List<Channel> channels = channelService.findChannelsByGuildId(guildId);
+        return ResponseEntity.ok(channels.stream()
+                .map(c -> channelService.toDto(c, 50))
+                .toList());
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.giscord.repository;
 
+import com.example.giscord.entity.Guild;
 import com.example.giscord.entity.GuildMembership;
 import com.example.giscord.entity.GuildMembershipId;
 import com.example.giscord.repository.projection.GuildIdNameView;
@@ -26,12 +27,21 @@ public interface GuildMembershipRepository extends JpaRepository<GuildMembership
             g.guildName as guildName
         from GuildMembership gm
         join gm.guild g
-        where gm.user.id = :userId
+        where gm.user.userId = :userId
     """)
     public List<GuildIdNameView> findGuildIdAndNameFromUserId(@Param("userId") Long userId);
 
 
+    // TODO: Modify this to findByGuild_guildId ?? check if that's more idiomatic (also, consider performance)
     List<GuildMembership> findByIdGuildId(Long guildId);
+
+    @Query("""
+        select gm
+        from GuildMembership gm
+        join fetch gm.guild g
+        where gm.user.userId = :userId
+    """)
+    List<GuildMembership> findByUser_userId(Long userId);
 
     boolean existsById(GuildMembershipId id);
 }

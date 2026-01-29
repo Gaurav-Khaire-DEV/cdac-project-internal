@@ -1,5 +1,6 @@
 package com.example.giscord.repository;
 
+import com.example.giscord.entity.Channel;
 import com.example.giscord.entity.ChannelMembership;
 import com.example.giscord.entity.ChannelMembershipId;
 import com.example.giscord.repository.projection.ChannelIdNameView;
@@ -15,8 +16,8 @@ public interface ChannelMembershipRepository extends JpaRepository<ChannelMember
     @Query("""
         select count(cm) > 0
         from ChannelMembership cm
-        where cm.channel.id = :channelId
-          and cm.user.id = :userId
+        where cm.channel.channelId = :channelId
+          and cm.user.userId = :userId
     """)
     boolean existsByChannelAndUser(
             @Param("channelId") Long channelId,
@@ -30,6 +31,8 @@ public interface ChannelMembershipRepository extends JpaRepository<ChannelMember
     """)
     public List<Long> findChannelIdByUserId(@Param("userId") Long userId);
 
+    public List<ChannelMembership> findByUser_userId(Long userId);
+
 
     @Query("""
         select
@@ -37,7 +40,7 @@ public interface ChannelMembershipRepository extends JpaRepository<ChannelMember
             c.channelName as channelName
         from ChannelMembership cm
         join cm.channel c
-        where cm.user.id = :userId
+        where cm.user.userId = :userId
     """)
     public List<ChannelIdNameView> findChannelIdAndNameFromUserId(@Param("userId") Long userId);
 

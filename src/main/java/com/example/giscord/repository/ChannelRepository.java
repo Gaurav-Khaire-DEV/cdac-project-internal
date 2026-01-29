@@ -27,5 +27,7 @@ public interface ChannelRepository extends JpaRepository<Channel, Long> {
 //            "left join fetch m.sender s " +
 //            "where c.channelId = :id")
 //    Optional<Channel> findByIdWithMessagesAndSenders(@Param("id") Long id);
+
+    public List<Channel> findByGuild_guildId(Long guildId);
 }
 

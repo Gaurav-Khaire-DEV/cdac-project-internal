@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+
 @Service
 public class ChannelService {
 
@@ -113,9 +115,20 @@ public class ChannelService {
                         m.getCreatedAt(),
                         m.getAttachments().stream()
                                 .map(Attachment::getId)
-                                .collect(Collectors.toList())
+                                .collect(toList())
                 ))
-                .collect(Collectors.toList());
+                .collect(toList());
+    }
+
+    public List<Channel> findChannelsByUserId(Long userId) {
+        return membershipRepo.findByUser_userId(userId).stream()
+                .map(cm -> cm.getChannel())
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Channel> findChannelsByGuildId(Long guildId) {
+        return channelRepo.findByGuild_guildId(guildId);
     }
 
     public ChannelDto getChannelById(Long id) throws Exception {

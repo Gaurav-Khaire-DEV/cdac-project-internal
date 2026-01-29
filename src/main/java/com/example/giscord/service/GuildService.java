@@ -62,6 +62,14 @@ public class GuildService {
         return true;
     }
 
+    @Transactional(readOnly = true)
+    public List<Guild> findGuildsByUserId(Long userId) {
+        List<GuildMembership> debugList = membershipRepo.findByUser_userId(userId);
+        return membershipRepo.findByUser_userId(userId).stream()
+                .map(GuildMembership::getGuild)
+                .toList();
+    }
+
     public Optional<Guild> findById(Long id) {
         return guildRepo.findById(id);
     }
