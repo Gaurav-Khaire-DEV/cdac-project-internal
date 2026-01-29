@@ -32,8 +32,10 @@ public class GuildController {
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<GuildDto> create(@RequestBody GuildCreationRequestDto req) {
-        Guild guild = guildService.createGuild(req.guildName(), req.ownerId(), req.description());
+    public ResponseEntity<GuildDto> create(@RequestBody GuildCreationRequestDto req, Authentication authentication) {
+        // JUGAAD-ALERT:
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Guild guild = guildService.createGuild(req.guildName(), userDetails.getUserId(), req.description());
         GuildDto dto = guildService.toDto(guild, 10);
         return ResponseEntity.ok(dto);
     }
