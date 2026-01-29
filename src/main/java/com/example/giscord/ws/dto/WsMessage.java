@@ -1,10 +1,12 @@
 package com.example.giscord.ws.dto;
 
+// TODO: obtain userId from jwt
 public class WsMessage {
 
     private String type;
     private Long channelId;
     private Object payload;
+    private Long userId;
 
     public WsMessage() {}
 
@@ -31,6 +33,10 @@ public class WsMessage {
     public void setPayload(Object payload) {
         this.payload = payload;
     }
+
+    public Long getUserId() { return userId; }
+
+    public void setUserId(Long userId) { this.userId = userId; }
 }
 
 

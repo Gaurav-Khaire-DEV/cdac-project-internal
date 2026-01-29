@@ -85,6 +85,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
         WsMessage wsMessage =
                 objectMapper.readValue(message.getPayload(), WsMessage.class);
+        wsMessage.setUserId(userId);
 
         // TODO: LEAVE_CHANNEL
         switch (wsMessage.getType()) {
