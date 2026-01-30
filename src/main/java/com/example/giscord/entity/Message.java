@@ -60,12 +60,12 @@ public class Message {
 
     public void addAttachment(Attachment attachment) {
         attachments.add(attachment);
-        attachment.getMessages().add(this);
+        attachment.addMessage(this);
     }
 
     public void removeAttachment(Attachment attachment) {
         attachments.remove(attachment);
-        attachment.getMessages().remove(this);
+        attachment.removeMessage(this);
     }
 
     @Override
