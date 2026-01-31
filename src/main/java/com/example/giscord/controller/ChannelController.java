@@ -3,6 +3,7 @@ package com.example.giscord.controller;
 import java.util.List;
 import java.util.Map;
 
+import com.example.giscord.dto.ChannelCreationRequestDto;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,10 +41,11 @@ public class ChannelController {
     }
 
     @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> create(@RequestBody Map<String, String> body) {
-        Long guildId = Long.valueOf(body.get("guildId"));
-        Long adminUserId = Long.valueOf(body.get("adminUserId"));
-        String channelName = body.get("name");
+    public ResponseEntity<?> create(@RequestBody ChannelCreationRequestDto body, Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        Long guildId = body.guildId();
+        Long adminUserId = userDetails.getUserId();
+        String channelName = body.name();
         try {
             Channel c = channelService.createChannel(guildId, adminUserId, channelName);
             ChannelDto dto = channelService.toDto(c, 10);

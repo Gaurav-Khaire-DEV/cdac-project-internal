@@ -3,6 +3,8 @@ package com.example.giscord.service;
 import java.util.List;
 import java.util.Set;
 
+import com.example.giscord.entity.User;
+import com.example.giscord.repository.UserRepository;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -20,17 +22,20 @@ public class MessageFlushService {
     private final RedisTemplate<String, String> redisStringTemplate;
     private final MessageRepository messageRepository;
     private final AttachmentRepository attachmentRepository;
+    private final UserRepository userRepository;
 
     public MessageFlushService(
             RedisTemplate<String, RedisMessage> redisMessageTemplate,
             RedisTemplate<String, String> redisStringTemplate,
             MessageRepository messageRepository,
-            AttachmentRepository attachmentRepository
+            AttachmentRepository attachmentRepository,
+            UserRepository userRepository
     ) {
         this.redisMessageTemplate = redisMessageTemplate;
         this.redisStringTemplate = redisStringTemplate;
         this.messageRepository = messageRepository;
         this.attachmentRepository = attachmentRepository;
+        this.userRepository = userRepository;
     }
 
 
@@ -57,9 +62,21 @@ public class MessageFlushService {
 
             for (RedisMessage rm: batch) {
 
+                if (rm.userId() == null) {
+                    System.err.println("Skipping message with null userId: " + rm);
+                    continue;
+                }
+
+                // TODO: Root Cause Analysis (Why even are userId's comming as nulls ??)
+                User sender = userRepository.findById(rm.userId()).orElse(null);
+                if (sender == null) {
+                    System.err.println("Skipping message with invalid userId: " + rm.userId());
+                    continue;
+                }
+
                 Message m = new Message();
                 m.setChannelId(rm.channelId());
-                m.setSenderUserId(rm.userId());
+                m.setSender(sender);
                 m.setContent(rm.content());
                 m.setCreatedAt(rm.createdAt());
                 

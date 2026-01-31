@@ -31,7 +31,8 @@ public class MessageController {
          return messages.stream().map(m -> new MessageDto(
                 m.getId(),
                 m.getChannelId(),
-                m.getSenderUserId(),
+                m.getSender().getUserId(),
+                m.getSender().getUserName(),
                 m.getContent(),
                 m.getCreatedAt(),
                 m.getAttachments() != null

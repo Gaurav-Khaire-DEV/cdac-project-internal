@@ -110,14 +110,14 @@ public class ChannelService {
                 .map(m -> new MessageDto(
                         m.getId(),
                         m.getChannelId(),
-                        m.getSenderUserId(),
+                        m.getSender().getUserId(),
+                        m.getSender().getUserName(),
                         m.getContent(),
                         m.getCreatedAt(),
                         m.getAttachments().stream()
                                 .map(Attachment::getId)
-                                .collect(toList())
-                ))
-                .collect(toList());
+                                .toList()
+                )).toList();
     }
 
     public List<Channel> findChannelsByUserId(Long userId) {

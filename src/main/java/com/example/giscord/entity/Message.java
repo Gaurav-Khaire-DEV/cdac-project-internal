@@ -4,16 +4,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 
 @Entity
@@ -27,8 +18,12 @@ public class Message {
     @Column(nullable = false)
     private Long channelId;
 
-    @Column(nullable = false)
-    private Long senderUserId;
+//    @Column(nullable = false)
+//    private Long senderUserId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sender_user_id")
+    private User sender;
 
     @Column(columnDefinition = "TEXT")
     private String content;
@@ -49,8 +44,10 @@ public class Message {
     public Long getId() { return id; }
     public Long getChannelId() { return channelId; }
     public void setChannelId(Long channelId) { this.channelId = channelId; }
-    public Long getSenderUserId() { return senderUserId; }
-    public void setSenderUserId(Long senderUserId) { this.senderUserId = senderUserId; }
+//    public Long getSenderUserId() { return senderUserId; }
+//    public void setSenderUserId(Long senderUserId) { this.senderUserId = senderUserId; }
+    public User getSender() { return sender; }
+    public void setSender(User sender) { this.sender = sender; }
     public String getContent() { return content; }
     public void setContent(String content) { this.content = content; }
     public Instant getCreatedAt() { return createdAt; }
