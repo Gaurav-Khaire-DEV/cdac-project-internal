@@ -44,7 +44,7 @@ public class Message {
     public Long getId() { return id; }
     public Long getChannelId() { return channelId; }
     public void setChannelId(Long channelId) { this.channelId = channelId; }
-//    public Long getSenderUserId() { return senderUserId; }
+    public Long getSenderUserId() { return sender != null ? sender.getUserId(): null; }
 //    public void setSenderUserId(Long senderUserId) { this.senderUserId = senderUserId; }
     public User getSender() { return sender; }
     public void setSender(User sender) { this.sender = sender; }

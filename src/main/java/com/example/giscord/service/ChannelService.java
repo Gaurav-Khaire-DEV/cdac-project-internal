@@ -105,7 +105,7 @@ public class ChannelService {
     @Transactional(readOnly = true)
     public List<MessageDto> listMessages(Long channelId, int limit) {
         var page = PageRequest.of(0, Math.max(1, limit));
-        List<Message> msgs = messageRepo.findAllByChannelIdOrderByCreatedAtDesc(channelId);
+        List<Message> msgs = messageRepo.findTop50ByChannelIdOrderByCreatedAtDesc(channelId);
         return msgs.stream()
                 .map(m -> new MessageDto(
                         m.getId(),

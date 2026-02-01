@@ -57,12 +57,25 @@ public class ChannelController {
 
     @PostMapping(path = "/{channelId}/join", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> join(@PathVariable Long channelId, @RequestBody Map<String, String> body) {
-        String role = body.get("role");
+        String role = null;
+        if (body.containsKey("role")) {
+            role = body.get("role");
+        }
+
         var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (!(principal instanceof CustomUserDetails cud)) {
             return ResponseEntity.status(401).body(Map.of("error", "not authenticated"));
         }
         Long userId = cud.getUserId();
+        System.out.println("*****************************");
+        System.out.println("*****************************");
+        System.out.println("*****************************");
+        System.out.println("*****************************");
+        System.out.println(userId);
+        System.out.println("*****************************");
+        System.out.println("*****************************");
+        System.out.println("*****************************");
+        System.out.println("*****************************");
         try {
             Channel c = channelService.joinChannel(channelId, userId, role);
             ChannelDto dto = channelService.toDto(c, 50);

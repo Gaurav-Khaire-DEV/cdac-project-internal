@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import com.example.giscord.repository.*;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
@@ -191,6 +192,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
 
 
+        msg.setUsername((String) session.getAttributes().get("username"));
+        msg.setUserId(userId);
         String outgoing = objectMapper.writeValueAsString(msg);
 
         for (WebSocketSession s :
@@ -201,6 +204,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
     }
 
+    @Transactional(readOnly = true)
     private void handleFetchMessages(WebSocketSession session, Long userId, WsMessage msg) throws Exception {
         Long channelId = msg.getChannelId();
         if (channelId == null) {
@@ -209,8 +213,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         }
 
         boolean isMember = channelMembershipRepository.existsByChannelAndUser(channelId, userId);
+        if (!isMember) {
+            sendError(session, "Not a member of channel" + channelId);
+            return;
+        }
 
-
+        // Get persisted messages from database
         var dbMessages = messageRepository.findTop50ByChannelIdWithSenderOrderByCreatedAtDesc(channelId);
 
         // Get recent messages from Redis
@@ -223,7 +231,7 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         var dbMessageList = dbMessages.stream().map(m -> Map.of(
                 "id", m.getId(),
                 "channelId", m.getChannelId(),
-                "userId", m.getSender().getUserId(),
+                "userId", m.getSenderUserId(),
                 "username", m.getSender().getUserName(),
                 "content", m.getContent(),
                 "timestamp", m.getCreatedAt().toString(),
@@ -232,7 +240,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                         : List.of()
         )).toList();
 
-        // TODO: Code Janitor (proper records instead of Maps)
         // Convert Redis messages to response format
         var redisMessageList = redisMessages.stream()
                 .filter(rm -> rm.userId() != null)

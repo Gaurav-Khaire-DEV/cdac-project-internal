@@ -20,7 +20,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
         select m from 
         Message m 
         join fetch m.sender 
-        left join m.attachments 
+        left join fetch m.attachments 
         where m.channelId = :channelId 
         ORDER BY m.createdAt DESC
     """)
