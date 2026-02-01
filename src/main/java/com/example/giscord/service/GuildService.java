@@ -21,11 +21,13 @@ public class GuildService {
     private final GuildRepository guildRepo;
     private final UserRepository userRepo;
     private final GuildMembershipRepository membershipRepo;
+    private final ChannelService channelService;
 
-    public GuildService(GuildRepository guildRepo, UserRepository userRepo, GuildMembershipRepository membershipRepo) {
+    public GuildService(GuildRepository guildRepo, UserRepository userRepo, GuildMembershipRepository membershipRepo, ChannelService channelService) {
         this.guildRepo = guildRepo;
         this.userRepo = userRepo;
         this.membershipRepo = membershipRepo;
+        this.channelService = channelService;
     }
 
     @Transactional
@@ -56,6 +58,13 @@ public class GuildService {
                 user,
                 role == null ? "member" : role
         );
+
+        // TODO: Join all channels
+
+        List<Channel> channels = channelService.findChannelsByGuildId(guildId);
+        for (Channel c: channels) {
+            channelService.joinChannel(c.getChannelId(), userId, role);
+        }
 
         membershipRepo.save(gm);
 

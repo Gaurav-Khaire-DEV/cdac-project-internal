@@ -47,6 +47,9 @@ public class GuildController {
         try {
             // TODO: Write Decent Code dude ...
             Guild g = guildService.joinGuild(guildId, userId, role) == true ? guildService.findById(guildId).get(): null;
+            if (g == null) {
+                return ResponseEntity.badRequest().body("Already Joined ...");
+            }
             GuildDto gto = guildService.toDto(g, 10);
             return ResponseEntity.ok(gto);
         } catch (IllegalArgumentException e) {
